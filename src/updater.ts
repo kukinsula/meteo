@@ -31,8 +31,14 @@ export function Init(): Promise<Report> {
           { upsert: true, new: true }).exec();
       }));
     })
-    .then((cities: CityDocument[]) => {
-      logger.debug(`Successfully inserted ${cities.length} cities!`);
+    .then((docs: (CityDocument | null)[]) => {
+      logger.debug(`Successfully inserted ${docs.length} cities!`);
+
+      let cities: CityDocument[] = [];
+
+      for (let i = 0; i < docs.length; i++)
+        if (cities[i] != null)
+          cities.push(cities[i]);
 
       return CrawlAllDates(cities, new Date(), new Report());
     })
