@@ -1,0 +1,23 @@
+# Emacs backup files:
+*~
+
+# Distribution Javascript files
+dist/
+
+# Node modules
+node_modules/
+
+# Configurations
+config/
+
+# Log files
+*.log
+
+# Test coverage
+coverage/
+
+# nyc
+.nyc_output/
+
+# mochawesome reporter
+mochawesome-report/

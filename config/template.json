@@ -1,0 +1,28 @@
+{
+    "mongo": {
+      "uri": "mongodb://127.0.0.1:27017/meteo",
+      "verbose": false
+    },
+    "log": {
+	"file": {
+	    "path": "./meteo.log",
+	    "level": "debug"
+	},
+	"console": {
+	    "level": "debug"
+	}
+    },
+    "verbose": true,
+    "mail": {
+	"host": "127.0.0.1",
+	"port": "25",
+	"from": "Meteo Database Updater <donotreply@mail.com>",
+	"to": [
+	    "Me <me@mail.com>"
+	],
+	"tls": {
+	    "rejectUnauthorized": false
+	},
+	"templatePath": "assets/mail"
+    }
+}
