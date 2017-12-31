@@ -37,8 +37,8 @@ export function Init(): Promise<Report> {
       let cities: CityDocument[] = [];
 
       for (let i = 0; i < docs.length; i++)
-        if (cities[i] != null)
-          cities.push(cities[i]);
+        if (docs[i] != null)
+          cities.push(docs[i] as CityDocument);
 
       return CrawlAllDates(cities, new Date(), new Report());
     })
