@@ -20,9 +20,9 @@ function main() {
     })
     .then(() => {
       if (config.mode == conf.INIT)
-        return updater.Init();
+        return updater.Init(config);
 
-      return updater.Update();
+      return updater.Update(config);
     })
     .then((report: Report) => {
       logger.info(`Report: ${JSON.stringify(report, undefined, 2)}`);

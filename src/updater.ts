@@ -2,6 +2,7 @@ import * as https from 'https';
 import { Buffer } from 'buffer';
 
 import { logger } from './logger';
+import { Config } from './config';
 import { Measure, DayMeasures } from './measure';
 import { City } from './city';
 import { Report } from './report';
@@ -20,7 +21,7 @@ const
 const
   URL = 'https://www.meteociel.com/temps-reel/obs_villes.php';
 
-export function Init(): Promise<Report> {
+export function Init(config: Config): Promise<Report> {
   return CityModel.remove({}).exec()
     .then(() => { return MeasureModel.remove({}).exec(); })
     .then(() => { return GetCities(); })
@@ -31,15 +32,12 @@ export function Init(): Promise<Report> {
           { upsert: true, new: true }).exec();
       }));
     })
-    .then((docs: (CityDocument | null)[]) => {
-      logger.debug(`Successfully inserted ${docs.length} cities!`);
+    .then(() => {
+      logger.debug('Successfully inserted cities!');
 
-      let cities: CityDocument[] = [];
-
-      for (let i = 0; i < docs.length; i++)
-        if (docs[i] != null)
-          cities.push(docs[i] as CityDocument);
-
+      return CityModel.find({ code: config.cityCodes }).exec()
+    })
+    .then((cities: CityDocument[]) => {
       return CrawlAllDates(cities, new Date(), new Report());
     })
     .catch((err: any) => { return Promise.reject(err); });
@@ -126,9 +124,6 @@ function ProcessAllCitiesAtOnce(cities: CityDocument[], date: Date): Promise<Rep
   return Promise.all(
     cities.map((city: CityDocument) => {
       let duration = GetRandomInt(1500, 3500);
-
-      // return Slower(duration)
-      //   .then(() => { return GetMeasure(city, date); })
 
       return GetMeasure(city, date)
         .then((measures: DayMeasures) => {
@@ -238,7 +233,7 @@ function GetMeasure(city: CityDocument, date: Date): Promise<DayMeasures> {
   });
 }
 
-export function Update(): Promise<Report> {
+export function Update(config: Config): Promise<Report> {
   return CityModel.find({}).exec()
     .then((cities: CityDocument[]) => {
       return ProcessAllCitiesAtOnce(cities, new Date());

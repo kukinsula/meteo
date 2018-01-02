@@ -98,6 +98,8 @@ export class Config implements RawConfig {
   public mail: MailConfig;
   public log: LogConfig;
 
+  public cityCodes: number[];
+
   constructor(raw?: RawConfig) {
     if (raw == undefined)
       raw = {};
@@ -129,6 +131,8 @@ export class Config implements RawConfig {
       to: [],
       templatePath: ''
     };
+
+    this.cityCodes = [];
   }
 
   public Build(): Promise<void> {
@@ -182,6 +186,9 @@ export class Config implements RawConfig {
             templatePath: cli.mail_templatePath || this.mail.templatePath,
           };
 
+          this.cityCodes = cli.city_codes != null ?
+            cli.city_codes.split(',') : this.cityCodes;
+
           resolve();
         })
         .catch((err: Error) => { reject(err); });
@@ -206,6 +213,7 @@ export class Config implements RawConfig {
       this.log = js.log || this.log;
       this.checkLogFilepath();
       this.mail = js.mail || this.mail;
+      this.cityCodes = js.cityCodes || this.cityCodes;
 
       resolve();
     });
@@ -251,6 +259,8 @@ export class Config implements RawConfig {
     parser.addArgument(['--mail-to'], { type: 'string' });
     parser.addArgument(['--mail-tls-reject-unhauthorized'], { action: 'storeFalse' });
     parser.addArgument(['--mail-tls-template-path'], { type: 'string' });
+
+    parser.addArgument(['--city-codes'], { type: 'string' });
 
     return parser.parseArgs();
   }

@@ -6,8 +6,6 @@ import { DebugFindQuery } from './schema';
 export interface CityDocument extends City, mongoose.Document { }
 
 const CitySchema = new mongoose.Schema({
-  // TODO: copound index name + code
-
   name: {
     type: String,
     unique: true,
@@ -15,7 +13,9 @@ const CitySchema = new mongoose.Schema({
   },
 
   code: {
-    type: Number
+    type: Number,
+    index: true,
+    unique: true
   },
 
   department: {
