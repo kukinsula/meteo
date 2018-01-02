@@ -96,14 +96,12 @@ function CrawlAllDates(
   date: Date,
   previous: Report): Promise<Report> {
 
-  let start = Date.now();
-
   logger.debug('Processing measures on %s...', date.toString());
 
-  return Process(cities, date)
+  return ProcessAllCitiesOneAfterTheOther(cities, date)
     .then((report: Report) => {
-      logger.debug('Successfully processed measures on %s in %d!',
-        date.toString(), Date.now() - start);
+      logger.debug('Successfully processed measures on %s in %f sec!',
+        date.toString(), report.duration / 1000);
 
       date.setDate(date.getDate() - 1);
 
@@ -122,7 +120,7 @@ function CrawlAllDates(
     });
 }
 
-function Process(cities: CityDocument[], date: Date): Promise<Report> {
+function ProcessAllCitiesAtOnce(cities: CityDocument[], date: Date): Promise<Report> {
   let start = Date.now();
 
   return Promise.all(
@@ -147,6 +145,41 @@ function Process(cities: CityDocument[], date: Date): Promise<Report> {
       return new Report(inserted, duration);
     })
     .catch((err: any) => { return Promise.reject(err); });
+}
+
+function ProcessAllCitiesOneAfterTheOther(
+  cities: CityDocument[],
+  date: Date): Promise<Report> {
+
+  return cities.reduce((acc, city) => {
+    let report: Report;
+    let start = 0;
+
+    return acc
+      .then((previous: Report) => {
+        logger.debug('Processing measures of %s on %s...',
+          city.name, date.toString());
+
+        report = previous;
+        start = Date.now();
+
+        return GetMeasure(city, date);
+      })
+      .then((measures: DayMeasures) => {
+        return new MeasureModel(measures).save();
+      })
+      .then((measures: DayMeasuresDocument) => {
+        let duration = Date.now() - start;
+
+        logger.debug('Successfully processed measures of %s on %s in %f sec!',
+          city.name, date.toString(), duration / 1000);
+
+        return report.Add(new Report(measures.measures.length, duration));
+      })
+      .catch((err: any) => {
+        return Promise.reject(err);
+      });
+  }, Promise.resolve(new Report()));
 }
 
 function GetMeasure(city: CityDocument, date: Date): Promise<DayMeasures> {
@@ -208,7 +241,7 @@ function GetMeasure(city: CityDocument, date: Date): Promise<DayMeasures> {
 export function Update(): Promise<Report> {
   return CityModel.find({}).exec()
     .then((cities: CityDocument[]) => {
-      return Process(cities, new Date());
+      return ProcessAllCitiesAtOnce(cities, new Date());
     })
     .catch((err: any) => { return Promise.reject(err); });
 }
