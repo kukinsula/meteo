@@ -22,8 +22,13 @@ const
   URL = 'https://www.meteociel.com/temps-reel/obs_villes.php';
 
 export function Init(config: Config): Promise<Report> {
-  return CityModel.remove({}).exec()
-    .then(() => { return MeasureModel.remove({}).exec(); })
+  let promise = Promise.resolve();
+
+  if (config.cleanDatabase)
+    promise = CityModel.remove({}).exec()
+      .then(() => { return MeasureModel.remove({}).exec(); });
+
+  return promise
     .then(() => { return GetCities(); })
     .then((cities: City[]) => {
       return Promise.all(cities.map((city: City) => {
@@ -38,7 +43,7 @@ export function Init(config: Config): Promise<Report> {
       return CityModel.find({ code: config.cityCodes }).exec()
     })
     .then((cities: CityDocument[]) => {
-      return CrawlAllDates(cities, new Date(), new Report());
+      return CrawlAllDates(cities, config.start, new Report());
     })
     .catch((err: any) => { return Promise.reject(err); });
 }

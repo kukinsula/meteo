@@ -25,6 +25,8 @@ Usage: npm start -- [OPTIONS...]
 
   --verbose                         Set app verbosity
 
+  --start-date                      Set startup date
+
 Mongo:
   --mongo-uri                       Database connection URI
   --mongo-verbose                   Enable Mongo's verbosity
@@ -77,6 +79,8 @@ export interface MailConfig {
 export interface RawConfig {
   mode?: Mode,
   verbose?: boolean,
+  start?: Date,
+  cleanDatabase?: boolean,
 
   mongo?: {
     uri: string,
@@ -90,6 +94,8 @@ export interface RawConfig {
 export class Config implements RawConfig {
   public mode: Mode;
   public verbose: boolean;
+  public start: Date;
+  public cleanDatabase: boolean;
 
   public mongo: {
     uri: string,
@@ -106,6 +112,8 @@ export class Config implements RawConfig {
 
     this.mode = raw.mode || UPDATE
     this.verbose = raw.verbose || false;
+    this.start = new Date();
+    this.cleanDatabase = false;
 
     this.mongo = raw.mongo || {
       uri: '',
@@ -156,7 +164,12 @@ export class Config implements RawConfig {
           if (this.mode != INIT && this.mode != UPDATE)
             throw new Error(`invalid mode ${this.mode}`);
 
+          console.log('ClI', cli);
+
           this.verbose = cli.verbose || this.verbose;
+          this.start = cli.start_date != null ? new Date(cli.start_date) : this.start;
+          this.cleanDatabase = cli.clean_database != null ?
+            cli.clean_database : this.cleanDatabase;
 
           this.mongo.uri = cli.mongo_uri || this.mongo.uri;
           this.mongo.verbose = cli.mongo_verbose || this.mongo.verbose;
@@ -208,6 +221,9 @@ export class Config implements RawConfig {
 
       this.mode = js.mode || this.mode;
       this.verbose = js.verbose || this.verbose;
+      this.start = js.start ? new Date(js.start) : this.start;
+      this.cleanDatabase = js.cleanDatabase != null || js.cleanDatabase != undefined ?
+        js.cleanDatabase : this.cleanDatabase;
 
       this.mongo = js.mongo || this.mongo;
       this.log = js.log || this.log;
@@ -242,6 +258,8 @@ export class Config implements RawConfig {
 
     parser.addArgument(['--mode'], { choices: [INIT, UPDATE] });
     parser.addArgument(['--verbose'], { action: 'storeTrue' });
+    parser.addArgument(['--start-date'], { type: 'string' });
+    parser.addArgument(['--clean-database'], { action: 'storeTrue' });
 
     parser.addArgument(['--mongo-uri'], { type: 'string' });
     parser.addArgument(['--mongo-verbose'], { action: 'storeTrue' });
@@ -281,9 +299,11 @@ export class Config implements RawConfig {
 
     return `Meteo Configuration:
 
-  MODE:     ${this.mode}
-  Mongo:    ${this.mongo.uri}
-  Mail:     ${mailStr}
+  MODE:         ${this.mode}
+  Start:        ${this.start}
+  Mongo:        ${this.mongo.uri}
+  Cleanup:      ${this.cleanDatabase}
+  Mail:         ${mailStr}
   Log: \n${logStr} \n`;
   }
 }
