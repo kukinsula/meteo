@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "init": "tsc && node ./dist/app.js --config config/config.json --mode init",
-    "update": "tsc && node ./dist/app.js --config config/config.json --mode update"
+    "update": "tsc && node ./dist/app.js --config config/config.json --mode update",
+    "export": "tsc && node ./dist/export.js --config config/config.json"
   },
   "keywords": [
     "meteo"

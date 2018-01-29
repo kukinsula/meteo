@@ -164,8 +164,6 @@ export class Config implements RawConfig {
           if (this.mode != INIT && this.mode != UPDATE)
             throw new Error(`invalid mode ${this.mode}`);
 
-          console.log('ClI', cli);
-
           this.verbose = cli.verbose || this.verbose;
           this.start = cli.start_date != null ? new Date(cli.start_date) : this.start;
           this.cleanDatabase = cli.clean_database != null ?

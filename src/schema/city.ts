@@ -13,7 +13,7 @@ const CitySchema = new mongoose.Schema({
   },
 
   code: {
-    type: Number,
+    type: String,
     index: true,
     unique: true
   },

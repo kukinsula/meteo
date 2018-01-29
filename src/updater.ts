@@ -22,6 +22,8 @@ const
   URL = 'https://www.meteociel.com/temps-reel/obs_villes.php';
 
 export function Init(config: Config): Promise<Report> {
+  logger.debug('Init');
+
   let promise = Promise.resolve();
 
   if (config.cleanDatabase)
@@ -29,8 +31,14 @@ export function Init(config: Config): Promise<Report> {
       .then(() => { return MeasureModel.remove({}).exec(); });
 
   return promise
-    .then(() => { return GetCities(); })
+    .then(() => {
+      logger.debug('Getting all cities...');
+
+      return GetCities();
+    })
     .then((cities: City[]) => {
+      logger.debug('Found %d cities', cities.length);
+
       return Promise.all(cities.map((city: City) => {
         return CityModel.findOneAndUpdate({ name: city.name },
           city,
